@@ -32,7 +32,7 @@ from src.scores import (
 from src.conformal import SplitConformalPredictor, three_way_split
 from src.evaluation import evaluate_coverage, evaluate_per_frequency_coverage
 from src.models import load_trained_model
-from src.data import get_data_splits, PDE_CONFIGS
+from src.data import get_data_splits, get_neuralop_darcy_splits, PDE_CONFIGS
 from src.utils import prepare_input
 
 
@@ -90,16 +90,24 @@ def run_calibration(args):
     ).to(device)
 
     # Load data
-    mode = "one_step" if config["time_dependent"] else "static"
-    _, cal_loader, test_loader = get_data_splits(
-        data_dir=args.data_dir,
-        pde_name=args.pde,
-        mode=mode,
-        resolution=args.resolution,
-        n_train=args.n_train,
-        n_cal=args.n_cal,
-        n_test=args.n_test,
-    )
+    if args.data_source == "neuralop" and args.pde == "darcy":
+        _, cal_loader, test_loader = get_neuralop_darcy_splits(
+            n_train=args.n_train,
+            n_cal=args.n_cal,
+            n_test=args.n_test,
+            resolution=args.resolution,
+        )
+    else:
+        mode = "one_step" if config["time_dependent"] else "static"
+        _, cal_loader, test_loader = get_data_splits(
+            data_dir=args.data_dir,
+            pde_name=args.pde,
+            mode=mode,
+            resolution=args.resolution,
+            n_train=args.n_train,
+            n_cal=args.n_cal,
+            n_test=args.n_test,
+        )
 
     # Get calibration and test data
     cal_x, cal_y = next(iter(cal_loader))
@@ -335,6 +343,8 @@ if __name__ == "__main__":
                         choices=["fno", "tfno", "deeponet", "uno"])
     parser.add_argument("--pde", type=str, default="darcy",
                         choices=list(PDE_CONFIGS.keys()))
+    parser.add_argument("--data_source", type=str, default="auto",
+                        choices=["auto", "neuralop", "hdf5"])
     parser.add_argument("--data_dir", type=str, default="./data/pdebench")
     parser.add_argument("--checkpoint_dir", type=str, default="./checkpoints")
     parser.add_argument("--output_dir", type=str, default="./results")

@@ -18,7 +18,7 @@ import time
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.models import get_model
-from src.data import get_data_splits, PDE_CONFIGS
+from src.data import get_data_splits, get_neuralop_darcy_splits, PDE_CONFIGS
 from src.utils import ensure_channel_dim, append_grid
 
 
@@ -47,17 +47,26 @@ def train(args):
     # Data
     config = PDE_CONFIGS[args.pde]
     spatial_dims = config["spatial_dims"]
-    mode = "one_step" if config["time_dependent"] else "static"
 
-    train_loader, cal_loader, test_loader = get_data_splits(
-        data_dir=args.data_dir,
-        pde_name=args.pde,
-        mode=mode,
-        resolution=args.resolution,
-        n_train=args.n_train,
-        n_cal=args.n_cal,
-        n_test=args.n_test,
-    )
+    if args.data_source == "neuralop" and args.pde == "darcy":
+        print("Using neuralop built-in Darcy dataset")
+        train_loader, cal_loader, test_loader = get_neuralop_darcy_splits(
+            n_train=args.n_train,
+            n_cal=args.n_cal,
+            n_test=args.n_test,
+            resolution=args.resolution,
+        )
+    else:
+        mode = "one_step" if config["time_dependent"] else "static"
+        train_loader, cal_loader, test_loader = get_data_splits(
+            data_dir=args.data_dir,
+            pde_name=args.pde,
+            mode=mode,
+            resolution=args.resolution,
+            n_train=args.n_train,
+            n_cal=args.n_cal,
+            n_test=args.n_test,
+        )
 
     # Compute normalization statistics from training data
     print("Computing normalization statistics...")
@@ -164,6 +173,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="fno", choices=["fno", "tfno", "deeponet", "uno"])
     parser.add_argument("--pde", type=str, default="darcy", choices=list(PDE_CONFIGS.keys()))
+    parser.add_argument("--data_source", type=str, default="auto",
+                        choices=["auto", "neuralop", "hdf5"],
+                        help="Data source: neuralop (auto-download), hdf5 (PDEBench), auto (try neuralop first)")
     parser.add_argument("--data_dir", type=str, default="./data/pdebench")
     parser.add_argument("--save_dir", type=str, default="./checkpoints")
     parser.add_argument("--resolution", type=int, default=64)

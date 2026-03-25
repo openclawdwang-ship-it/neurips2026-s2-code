@@ -188,8 +188,16 @@ elif [ -f "${CKPT_DIR}/fno_darcy_64/best.pt" ]; then
     echo -e "  ${G}[SKIP]${N} Checkpoint exists: ${CKPT_DIR}/fno_darcy_64/best.pt"
 else
     # Budget: 5400s = 90 min (generous for 500 epochs on 3090)
+    # Use neuralop data if available, fall back to HDF5
+    DATA_SOURCE_FLAG=""
+    if python3 -c "from neuralop.data.datasets.darcy import DarcyDataset" 2>/dev/null; then
+        DATA_SOURCE_FLAG="--data_source neuralop"
+        echo -e "  ${G}[DATA]${N} Using neuralop built-in Darcy dataset"
+    else
+        echo -e "  ${Y}[DATA]${N} Using HDF5 data from ${DATA_DIR}"
+    fi
     run_with_budget 5400 "${LOG_DIR}/train_fno_darcy_64.log" \
-        "python3 scripts/train.py --model fno --pde darcy --resolution 64 --epochs 500 --lr 1e-3 --seed 42 --data_dir ${DATA_DIR} --save_dir ${CKPT_DIR}" || {
+        "python3 scripts/train.py --model fno --pde darcy --resolution 64 --epochs 500 --lr 1e-3 --seed 42 ${DATA_SOURCE_FLAG} --data_dir ${DATA_DIR} --save_dir ${CKPT_DIR}" || {
         echo -e "${R}Training failed! Check ${LOG_DIR}/train_fno_darcy_64.log${N}"
         exit 1
     }

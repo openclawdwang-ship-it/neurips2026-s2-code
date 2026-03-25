@@ -1,14 +1,16 @@
 """
-Data loading utilities for PDEBench datasets.
+Data loading utilities for neural operator experiments.
 
-Supports: 2D Darcy Flow, 1D Burgers, 2D Navier-Stokes,
+Supports two data sources:
+  1. PDEBench HDF5 files (original, requires download)
+  2. neuralop built-in datasets (auto-downloads from Zenodo, recommended)
+
+Supported PDEs: 2D Darcy Flow, 1D Burgers, 2D Navier-Stokes,
 1D Diffusion-Reaction, 2D Shallow Water.
-
-Data format: HDF5 files from PDEBench (https://github.com/pdebench/PDEBench)
 """
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, TensorDataset
 import h5py
 import numpy as np
 from pathlib import Path
@@ -258,5 +260,76 @@ def get_data_splits(
         torch.utils.data.Subset(dataset, test_idx),
         batch_size=len(test_idx), shuffle=False,
     )
+
+    return train_loader, cal_loader, test_loader
+
+
+def get_neuralop_darcy_splits(
+    n_train: int = 800,
+    n_cal: int = 100,
+    n_test: int = 100,
+    resolution: int = 16,
+    data_root: Optional[str] = None,
+    seed: int = 42,
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    """Load Darcy Flow data from neuralop's built-in dataset (Zenodo).
+
+    Auto-downloads ~10MB of .pt files. No external HDF5 needed.
+    Returns train/cal/test loaders with (x, y) tuples where x, y
+    have shape (*spatial) — no channel dim, matching PDEBench format.
+
+    Available resolutions: 16, 32, 64, 128.
+    """
+    from neuralop.data.datasets.darcy import DarcyDataset
+
+    if data_root is None:
+        data_root = str(Path("./data/neuralop_darcy"))
+
+    total = n_train + n_cal + n_test
+
+    # Use DarcyDataset directly for control over resolution
+    dataset = DarcyDataset(
+        root_dir=data_root,
+        n_train=total,
+        n_tests=[1],  # minimal test set (we do our own split)
+        batch_size=total,
+        test_batch_sizes=[1],
+        train_resolution=resolution,
+        test_resolutions=[resolution],
+        encode_input=False,
+        encode_output=False,
+        download=True,
+    )
+
+    # Extract all training data as tensors
+    # neuralop stores as (N, 1, H, W) — squeeze channel dim to (N, H, W)
+    all_data = list(dataset.train_db)
+    all_x = torch.stack([item[0] for item in all_data]).squeeze(1)  # (N, H, W)
+    all_y = torch.stack([item[1] for item in all_data]).squeeze(1)  # (N, H, W)
+
+    # Deterministic split
+    rng = torch.Generator().manual_seed(seed)
+    n = len(all_x)
+    perm = torch.randperm(n, generator=rng)
+
+    train_x, train_y = all_x[perm[:n_train]], all_y[perm[:n_train]]
+    cal_x, cal_y = all_x[perm[n_train:n_train+n_cal]], all_y[perm[n_train:n_train+n_cal]]
+    test_x, test_y = all_x[perm[n_train+n_cal:n_train+n_cal+n_test]], all_y[perm[n_train+n_cal:n_train+n_cal+n_test]]
+
+    train_loader = DataLoader(
+        TensorDataset(train_x, train_y),
+        batch_size=32, shuffle=True,
+    )
+    cal_loader = DataLoader(
+        TensorDataset(cal_x, cal_y),
+        batch_size=n_cal, shuffle=False,
+    )
+    test_loader = DataLoader(
+        TensorDataset(test_x, test_y),
+        batch_size=n_test, shuffle=False,
+    )
+
+    print(f"  neuralop Darcy: train={n_train}, cal={n_cal}, test={n_test}, "
+          f"res={resolution}, x={train_x.shape}")
 
     return train_loader, cal_loader, test_loader
