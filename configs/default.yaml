@@ -1,0 +1,96 @@
+# =============================================================================
+# Spectral Conformal Prediction — Default Experiment Configuration
+# =============================================================================
+# Central config for all scripts. Override with --config <path>.
+# CLI args take precedence over this file.
+
+# --- Paths (RunPod defaults) ---
+paths:
+  project_dir: /workspace/S2-conformal-uq
+  data_dir: ./data/pdebench
+  checkpoint_dir: ./checkpoints
+  results_dir: ./results
+  log_dir: ./logs
+
+# --- Data splits ---
+data:
+  n_train: 800
+  n_cal: 100
+  n_test: 100
+  seed: 42
+
+# --- Training ---
+training:
+  epochs: 500
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 32
+  seed: 42
+  loss: relative_l2
+  grid_input: true            # Append spatial coords as input channels (FNO standard)
+
+# --- Conformal prediction ---
+conformal:
+  alpha: 0.1                    # Target miscoverage (90% coverage)
+  coverage_tolerance: 0.02      # Valid if coverage >= 1 - alpha - tolerance
+  scores:
+    - l2
+    - spectral_uniform
+    - spectral_sobolev_1
+    - spectral_sobolev_2
+    - spectral_inverse
+    - spectral_learned
+    - cqr_simplified
+
+# --- Spectral ACI ---
+aci:
+  gamma: 0.01                   # ACI learning rate
+  n_freq_bins: 8
+  adapt_per_frequency: true
+
+# --- Experiment matrix ---
+# Phase 1: Static experiments
+static_experiments:
+  - model: fno
+    pde: darcy
+    resolution: 64
+  - model: tfno
+    pde: darcy
+    resolution: 64
+  - model: deeponet
+    pde: darcy
+    resolution: 64
+  - model: fno
+    pde: burgers
+    resolution: 128
+
+# Phase 2: Rollout experiments
+rollout_experiments:
+  - model: fno
+    pde: navier_stokes
+    resolution: 64
+    n_steps: 20
+  - model: tfno
+    pde: navier_stokes
+    resolution: 64
+    n_steps: 20
+
+# Phase 3: Ablations
+ablations:
+  calibration_set_sizes: [50, 100, 200, 500]
+  resolutions: [32, 64]         # 128 only if budget allows
+  aci_gammas: [0.005, 0.01, 0.02, 0.05]
+
+# --- Baselines ---
+baselines:
+  mc_dropout:
+    n_forward_passes: 20
+    dropout_rate: 0.1
+  ensemble:
+    n_models: 5                  # Budget: 5x training cost
+
+# --- Time budgets (seconds, per PRINCIPLES.md) ---
+budgets:
+  calibration: 120               # 2 min
+  rollout: 300                   # 5 min
+  training_per_model: 5400       # 90 min (500 epochs)
