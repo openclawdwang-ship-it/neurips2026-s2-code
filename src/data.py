@@ -112,6 +112,15 @@ class PDEBenchDataset(Dataset):
             max_samples or float("inf"),
         )
 
+        # Detect actual spatial resolution from data
+        # Data may be (N, H, W), (N, 1, H, W), etc.
+        data_shape = self.data[self.config["input_key"]].shape
+        actual_res = data_shape[-1]  # last dim is always spatial
+        if actual_res != self.config["resolution"]:
+            self._actual_resolution = actual_res
+        else:
+            self._actual_resolution = self.config["resolution"]
+
     def __len__(self) -> int:
         if self.mode == "one_step" and self.config["time_dependent"]:
             n_steps = self.config["n_timesteps"] - self.t_in - self.t_out + 1
@@ -134,6 +143,11 @@ class PDEBenchDataset(Dataset):
         y = torch.tensor(
             self.data[self.config["output_key"]][idx], dtype=torch.float32
         )
+        # Squeeze leading channel dim if present: (1, H, W) -> (H, W)
+        if x.ndim == self.config["spatial_dims"] + 1 and x.shape[0] == 1:
+            x = x.squeeze(0)
+        if y.ndim == self.config["spatial_dims"] + 1 and y.shape[0] == 1:
+            y = y.squeeze(0)
         x = self._maybe_downsample(x)
         y = self._maybe_downsample(y)
         return x, y
@@ -174,11 +188,14 @@ class PDEBenchDataset(Dataset):
 
     def _maybe_downsample(self, x: torch.Tensor) -> torch.Tensor:
         """Downsample spatial dimensions if needed."""
-        orig_res = self.config["resolution"]
-        if self.resolution >= orig_res:
+        # Use actual data resolution, not config (synthetic data may differ)
+        actual_res = self._actual_resolution
+        if self.resolution >= actual_res:
             return x
         # Simple strided downsampling
-        factor = orig_res // self.resolution
+        factor = actual_res // self.resolution
+        if factor <= 1:
+            return x
         if self.config["spatial_dims"] == 1:
             return x[..., ::factor]
         elif self.config["spatial_dims"] == 2:

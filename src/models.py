@@ -180,18 +180,24 @@ def load_trained_model(
         model.x_mean, model.x_std, model.y_mean, model.y_std
     These are None if loaded from a legacy checkpoint.
     """
-    model = get_model(model_name, **model_kwargs)
-    ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+    ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
 
     if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+        # Read in_channels from checkpoint to build model with correct shape
+        saved_in_channels = ckpt.get("in_channels")
+        if saved_in_channels is not None:
+            model_kwargs["in_channels"] = saved_in_channels
+
+        model = get_model(model_name, **model_kwargs)
         model.load_state_dict(ckpt["model_state_dict"])
         model.x_mean = ckpt.get("x_mean")
         model.x_std = ckpt.get("x_std")
         model.y_mean = ckpt.get("y_mean")
         model.y_std = ckpt.get("y_std")
-        model.in_channels = ckpt.get("in_channels")
+        model.in_channels = saved_in_channels
     else:
         # Legacy checkpoint: plain state_dict, no normalization
+        model = get_model(model_name, **model_kwargs)
         model.load_state_dict(ckpt)
         model.x_mean = None
         model.x_std = None

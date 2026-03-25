@@ -157,14 +157,20 @@ else
     echo ""
     echo "  Attempting download..."
     if [ -f "${SCRIPT_DIR}/download_data.sh" ]; then
-        bash "${SCRIPT_DIR}/download_data.sh" darcy "${DATA_DIR}"
-    else
-        echo -e "  ${R}ERROR: Cannot download. Place ${DARCY_FILE} in ${DATA_DIR}/${N}"
-        exit 1
+        bash "${SCRIPT_DIR}/download_data.sh" darcy "${DATA_DIR}" || true
+    fi
+
+    # Fallback: fix_data.py (HuggingFace → neuralop → synthetic)
+    if [ ! -f "${DATA_DIR}/${DARCY_FILE}" ]; then
+        echo -e "  ${Y}[FALLBACK]${N} DaRUS download failed. Trying fix_data.py..."
+        python3 "${SCRIPT_DIR}/fix_data.py" --data_dir "${DATA_DIR}" --n_samples 1000 --resolution 128 || {
+            echo -e "  ${R}ERROR: All data methods failed. Cannot continue.${N}"
+            exit 1
+        }
     fi
 
     if [ ! -f "${DATA_DIR}/${DARCY_FILE}" ]; then
-        echo -e "  ${R}ERROR: Download failed. Cannot continue.${N}"
+        echo -e "  ${R}ERROR: No data file after all attempts. Cannot continue.${N}"
         exit 1
     fi
 fi
