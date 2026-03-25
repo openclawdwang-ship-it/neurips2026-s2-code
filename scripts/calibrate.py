@@ -144,8 +144,11 @@ def run_calibration(args):
             cal_pred = cal_pred_norm
             test_pred = test_pred_norm
 
-    cal_y = cal_y.to(device)
-    test_y = test_y.to(device)
+    # Move everything to CPU for conformal/numpy operations
+    cal_pred = cal_pred.detach().cpu()
+    test_pred = test_pred.detach().cpu()
+    cal_y = cal_y.cpu()
+    test_y = test_y.cpu()
 
     results = {}
     target_coverage = 1.0 - args.alpha
