@@ -1,0 +1,11 @@
+{
+  "dataset": "Darcy_64x64_real",
+  "n_train": 3334,
+  "n_cal": 1666,
+  "n_test": 1000,
+  "alpha": 0.1,
+  "quantile": 0.3885470613533137,
+  "coverage": 0.887,
+  "target_coverage": 0.9,
+  "status": "FAIL"
+}

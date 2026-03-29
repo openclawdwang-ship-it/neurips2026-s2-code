@@ -302,10 +302,14 @@ def get_neuralop_darcy_splits(
     )
 
     # Extract all training data as tensors
-    # neuralop stores as (N, 1, H, W) — squeeze channel dim to (N, H, W)
+    # neuralop stores as dict or tuple — handle both
     all_data = list(dataset.train_db)
-    all_x = torch.stack([item[0] for item in all_data]).squeeze(1)  # (N, H, W)
-    all_y = torch.stack([item[1] for item in all_data]).squeeze(1)  # (N, H, W)
+    if isinstance(all_data[0], dict):
+        all_x = torch.stack([item['x'] for item in all_data]).squeeze(1)
+        all_y = torch.stack([item['y'] for item in all_data]).squeeze(1)
+    else:
+        all_x = torch.stack([item[0] for item in all_data]).squeeze(1)
+        all_y = torch.stack([item[1] for item in all_data]).squeeze(1)
 
     # Deterministic split
     rng = torch.Generator().manual_seed(seed)

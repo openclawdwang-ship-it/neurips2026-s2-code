@@ -9,7 +9,7 @@ set -euo pipefail
 PYTHON=$(command -v python3 || command -v python)
 echo "Using: $PYTHON"
 
-PROJECT_DIR="${PROJECT_DIR:-/workspace/S2-conformal-uq}"
+PROJECT_DIR="${PROJECT_DIR:-.}"
 cd "${PROJECT_DIR}"
 
 # Ensure deps

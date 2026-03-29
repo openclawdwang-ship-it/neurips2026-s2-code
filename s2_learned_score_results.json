@@ -1,0 +1,9 @@
+{
+  "method": "Learned_Score_L2Norm",
+  "dataset": "Darcy_64x64",
+  "n_cal": 2500,
+  "n_test": 1000,
+  "coverage": 0.888,
+  "target": 0.9,
+  "status": "FAIL"
+}
