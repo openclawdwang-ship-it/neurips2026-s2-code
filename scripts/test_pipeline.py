@@ -7,7 +7,9 @@ No GPU required. Verifies all components work together.
 
 Usage:
     python scripts/test_pipeline.py          # uses neuralop data (auto-downloads ~10MB)
-    python scripts/test_pipeline.py --quick  # uses random synthetic data (no download)
+    python scripts/test_pipeline.py --quick  # uses tiny random tensors for ARCH TEST ONLY (not experiments)
+
+NOTE: Random data is for ARCHITECTURE TESTING ONLY - not for experiments or results.
 """
 
 import argparse

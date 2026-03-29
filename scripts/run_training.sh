@@ -11,6 +11,10 @@
 
 set -euo pipefail
 
+# Use python3 (RunPod images may not have 'python' symlink)
+PYTHON=$(command -v python3 || command -v python)
+echo "Using: $PYTHON"
+
 PROJECT_DIR="${PROJECT_DIR:-/workspace/S2-conformal-uq}"
 cd "${PROJECT_DIR}"
 
@@ -41,7 +45,7 @@ echo "[1/6] FNO on Darcy 64x64..."
 if [ -f "${SAVE_DIR}/fno_darcy_64/best.pt" ]; then
     echo "  Checkpoint exists. Skipping."
 else
-    python scripts/train.py \
+    $PYTHON scripts/train.py \
         --model fno --pde darcy --resolution 64 \
         --epochs 100 --lr 1e-3 \
         --n_train 800 --n_cal 100 --n_test 100 \
@@ -55,7 +59,7 @@ echo "[2/6] TFNO on Darcy 64x64..."
 if [ -f "${SAVE_DIR}/tfno_darcy_64/best.pt" ]; then
     echo "  Checkpoint exists. Skipping."
 else
-    python scripts/train.py \
+    $PYTHON scripts/train.py \
         --model tfno --pde darcy --resolution 64 \
         --epochs 100 --lr 1e-3 \
         --n_train 800 --n_cal 100 --n_test 100 \
@@ -69,7 +73,7 @@ echo "[3/6] DeepONet on Darcy 64x64..."
 if [ -f "${SAVE_DIR}/deeponet_darcy_64/best.pt" ]; then
     echo "  Checkpoint exists. Skipping."
 else
-    python scripts/train.py \
+    $PYTHON scripts/train.py \
         --model deeponet --pde darcy --resolution 64 \
         --epochs 200 --lr 5e-4 \
         --n_train 800 --n_cal 100 --n_test 100 \
@@ -83,7 +87,7 @@ echo "[4/6] FNO on Burgers 1D (resolution 128)..."
 if [ -f "${SAVE_DIR}/fno_burgers_128/best.pt" ]; then
     echo "  Checkpoint exists. Skipping."
 else
-    python scripts/train.py \
+    $PYTHON scripts/train.py \
         --model fno --pde burgers --resolution 128 \
         --epochs 100 --lr 1e-3 \
         --n_train 800 --n_cal 100 --n_test 100 \
@@ -102,7 +106,7 @@ if [ -f "${DATA_DIR}/${NS_FILE}" ]; then
     if [ -f "${SAVE_DIR}/fno_navier_stokes_64/best.pt" ]; then
         echo "  Checkpoint exists. Skipping."
     else
-        python scripts/train.py \
+        $PYTHON scripts/train.py \
             --model fno --pde navier_stokes --resolution 64 \
             --epochs 100 --lr 1e-3 \
             --n_train 800 --n_cal 100 --n_test 100 \
@@ -115,7 +119,7 @@ if [ -f "${DATA_DIR}/${NS_FILE}" ]; then
     if [ -f "${SAVE_DIR}/tfno_navier_stokes_64/best.pt" ]; then
         echo "  Checkpoint exists. Skipping."
     else
-        python scripts/train.py \
+        $PYTHON scripts/train.py \
             --model tfno --pde navier_stokes --resolution 64 \
             --epochs 100 --lr 1e-3 \
             --n_train 800 --n_cal 100 --n_test 100 \
