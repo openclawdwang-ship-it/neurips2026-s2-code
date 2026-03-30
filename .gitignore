@@ -1,0 +1,10 @@
+
+# Large data files
+data/
+logs/
+checkpoints/
+*.pt
+*.tgz
+*.hdf5
+__pycache__/
+.omc/
