@@ -55,6 +55,7 @@ def train(args):
             n_cal=args.n_cal,
             n_test=args.n_test,
             resolution=args.resolution,
+            seed=args.seed,
         )
     else:
         mode = "one_step" if config["time_dependent"] else "static"

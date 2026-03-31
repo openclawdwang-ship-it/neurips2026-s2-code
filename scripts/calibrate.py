@@ -96,6 +96,7 @@ def run_calibration(args):
             n_cal=args.n_cal,
             n_test=args.n_test,
             resolution=args.resolution,
+            seed=args.seed,
         )
     else:
         mode = "one_step" if config["time_dependent"] else "static"
@@ -252,8 +253,8 @@ def run_calibration(args):
             mc = mc_dropout_predict(
                 model, mc_input, n_passes=args.mc_n_passes, dropout_rate=0.1,
             )
-            mc_mean = mc["mean"].squeeze(1)
-            mc_std = mc["std"].squeeze(1)
+            mc_mean = mc["mean"].squeeze(1).detach().cpu()
+            mc_std = mc["std"].squeeze(1).detach().cpu()
             # Denormalize MC predictions
             if has_norm:
                 mc_mean = mc_mean * y_std + y_mean
@@ -362,5 +363,6 @@ if __name__ == "__main__":
     parser.add_argument("--n_train", type=int, default=800)
     parser.add_argument("--n_cal", type=int, default=100)
     parser.add_argument("--n_test", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
     run_calibration(args)
