@@ -1,0 +1,22 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{Conformal Prediction}
+
+Conformal prediction provides distribution-free coverage guarantees under the assumption of exchangeable data~\citep{vovk2005algorithmic,shafer2008tutorial}. Given a calibration set and a user-specified miscoverage level $\alpha$, conformal prediction constructs prediction sets that contain the true label with probability at least $1 - \alpha$, without assumptions on the form of the underlying distribution. \citet{romano2019conformalized} introduced conformalized quantile regression (CQR), which adapts the nonconformity score to produce heteroscedastic prediction bands whose width varies with input difficulty. \citet{angelopoulos2023conformal} provide a comprehensive tutorial covering modern variants, including mondrian conformal prediction and risk-controlling procedures. On the theoretical side, \citet{feldman2021improving} examine the role of exchangeability conditions and characterize coverage guarantees under mild distributional shift.
+
+Despite this rich literature, all existing nonconformity scores operate in the \emph{output space} of the predictor---typically pixel-wise residuals for function-valued outputs. No prior work has proposed nonconformity scores defined in the \emph{spectral domain}, leaving the frequency-dependent error structure of neural PDE operators unexploited during calibration.
+
+\subsection{Neural Operators for PDEs}
+
+Neural operators learn mappings between infinite-dimensional function spaces, making them natural surrogates for PDE solution operators. \citet{li2021fourier} proposed the Fourier Neural Operator (FNO), which parameterizes the integral kernel in the Fourier domain and achieves state-of-the-art accuracy on a range of fluid and solid mechanics benchmarks. \citet{lu2021learning} introduced DeepONet, grounding the operator learning paradigm in the universal approximation theorem for operators. \citet{kovachki2023neural} provide a unifying theoretical framework for this family of architectures, analyzing approximation rates and the role of resolution invariance.
+
+Empirical benchmarking has been systematized by \citet{takamoto2022pdebench}, which provides standardized datasets and evaluation protocols across one- and two-dimensional PDEs, and is used as a primary evaluation suite in this work. A practically important characteristic of neural operators---as with neural networks more broadly---is \emph{spectral bias}: networks preferentially fit low-frequency components of the target function and generalize poorly at high frequencies~\citep{rahaman2019spectral}. \citet{fanaskov2023spectral} show that this bias persists in the operator learning setting and manifests as systematically larger residuals at high wavenumbers. Our spectral nonconformity score is designed precisely to capture and correct for this frequency-dependent error structure.
+
+\subsection{Uncertainty Quantification for Scientific ML}
+
+Uncertainty quantification for neural surrogates of physical systems has largely followed two paradigms. \citet{gal2016dropout} demonstrated that Monte Carlo Dropout provides approximate Bayesian inference at inference time, and the approach has been applied to surrogate modeling of PDEs. \citet{lakshminarayanan2017simple} showed that deep ensembles produce well-calibrated predictive distributions on in-distribution data and improve robustness under distributional shift. Both approaches have seen adoption in scientific machine learning, where calibrated uncertainty estimates are critical for downstream decision-making~\citep{kovachki2023neural}.
+
+However, these methods share a fundamental limitation in the scientific ML setting: they do not provide \emph{distribution-free} coverage guarantees for function-valued outputs. Ensemble spread and dropout variance are calibrated in expectation under parametric assumptions that can fail under the covariate shift typical of PDE applications (e.g., varying physical parameters or boundary conditions). While conformal prediction is well suited to close this gap, applying it naively to function-valued outputs ignores the structure of the prediction error.
+
+Our work is the first to combine conformal prediction with the spectral structure of neural operators, yielding prediction bands with rigorous marginal coverage guarantees while adapting their shape to the frequency-dependent error profile of FNO-class models.

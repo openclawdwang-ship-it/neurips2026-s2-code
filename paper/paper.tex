@@ -1,0 +1,95 @@
+\documentclass{article}
+
+\usepackage[final]{neurips_2026}
+
+% Math packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[ruled,vlined]{algorithm2e}
+
+% Graphics
+\usepackage{graphicx}
+
+% Bibliography
+\usepackage{natbib}
+
+% Other useful packages
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{multirow}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{assumption}[theorem]{Assumption}
+
+% Math operators and notation
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calG}{\mathcal{G}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calY}{\mathcal{Y}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\qhat}{\hat{q}}
+\newcommand{\uhat}{\hat{u}}
+\newcommand{\fhat}{\hat{f}}
+\newcommand{\sNS}{s_{\mathrm{NS}}}
+\newcommand{\sSpec}{s_{\mathrm{spec}}}
+
+% Probability shorthand
+\renewcommand{\Pr}{\mathbb{P}}
+
+\title{Spectral Nonconformity Scores for Uncertainty Quantification in Neural PDE Operators}
+
+\author{%
+  Anonymous Authors \\
+  Anonymous Institution \\
+  \texttt{anonymous@example.com}
+}
+
+\begin{document}
+
+\maketitle
+
+% ===========================================================================
+\input{sections/abstract_intro}
+
+% ===========================================================================
+\input{sections/related_work}
+
+% ===========================================================================
+\input{sections/method_theory}
+
+% ===========================================================================
+\input{sections/experiments_discussion}
+
+% ===========================================================================
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% ===========================================================================
+\appendix
+
+\section{Additional Experimental Results}
+\label{app:experiments}
+
+Table~\ref{tab:main} presents the full results across all architectures and score functions.
+
+\input{../results/tables}
+
+\end{document}

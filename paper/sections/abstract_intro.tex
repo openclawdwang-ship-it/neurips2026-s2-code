@@ -1,0 +1,100 @@
+% abstract_intro.tex — Abstract and Introduction
+% NeurIPS 2026 submission: Spectral Conformal Prediction for Neural PDE Operators
+
+\begin{abstract}
+Neural operators such as Fourier Neural Operators (FNOs) learn PDE solution maps
+efficiently but lack calibrated uncertainty quantification with finite-sample
+guarantees. We introduce \emph{spectral nonconformity scores} for conformal
+prediction on neural operators, defined as weighted sums over Fourier error
+coefficients: $s_w(u) = \sum_k w_k |\hat{u}_{\mathrm{err}}(k)|^2$. This
+formulation unifies $L^2$ scores (uniform weights, via Parseval's identity),
+Sobolev scores (polynomial weights $(1+|k|^2)^s$), and learned
+frequency-dependent weights under a single framework with distribution-free
+coverage guarantees. Across 57 configurations (3 architectures $\times$ 5 seeds,
+plus ablations over $\alpha$ and calibration set size) on real Darcy flow data,
+learned spectral weights produce 42\% tighter prediction bands
+than uniform scores on FNO while maintaining valid coverage across all
+configurations. Non-spectral architectures exhibit $3.8\times$ wider bands,
+confirming that frequency-structured scores exploit the spectral bias inherent
+in Fourier-based operators. Our results establish spectral conformal prediction
+as a principled, architecture-aware approach to uncertainty quantification for
+neural PDE solvers.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Neural operators learn mappings between infinite-dimensional function spaces and
+have achieved strong empirical performance on partial differential equations
+(PDEs) including Navier--Stokes, Darcy flow, and Burgers' equation
+\citep{li2021fourier,lu2021learning,kovachki2023neural}. Fourier Neural
+Operators (FNOs) parameterize integral kernels in the frequency domain, enabling
+resolution-invariant learning with quasi-linear complexity. Despite their
+predictive accuracy, neural operators are deployed without calibrated uncertainty
+estimates---a critical gap for safety-relevant applications in engineering
+simulation, climate modeling, and medical imaging where practitioners must know
+\emph{when} to trust a prediction.
+
+Existing approaches to uncertainty quantification (UQ) for neural operators
+inherit the limitations of standard deep learning UQ. Monte Carlo (MC) Dropout
+\citep{gal2016dropout} requires dropout layers that FNO and Tensorized FNO
+(TFNO) architectures typically lack, yielding degenerate estimates (0\% coverage
+in our experiments). Deep ensembles \citep{lakshminarayanan2017simple} provide
+useful heuristics but offer no finite-sample coverage guarantees and scale
+poorly: training $M$ independent neural operators multiplies an already
+substantial computational cost. Bayesian neural operator approaches
+\citep{magnani2022approximate} introduce approximate inference but depend on
+distributional assumptions that are difficult to verify for PDE solution
+manifolds.
+
+Conformal prediction \citep{vovk2005algorithmic,shafer2008tutorial} provides
+distribution-free, finite-sample coverage guarantees under the sole assumption
+of exchangeability. Given a calibration set and a \emph{nonconformity score}
+measuring prediction quality, conformal prediction constructs prediction sets
+that contain the true output with probability at least $1 - \alpha$ for any
+user-specified $\alpha$. Recent work has applied conformal methods to regression
+\citep{romano2019conformalized}, time series \citep{stankeviciute2021conformal},
+and image segmentation \citep{angelopoulos2022image}. However, applying
+conformal prediction to function-valued outputs requires nonconformity scores
+defined over function spaces, and the standard choice---pointwise or global
+$L^2$ residuals---treats all spatial frequencies uniformly, ignoring the
+structure of neural operator errors.
+
+Our key insight is that FNO errors are not uniformly distributed across
+frequencies. The \emph{spectral bias} of neural networks
+\citep{rahaman2019spectral} is amplified in Fourier-based operators: FNOs
+process each frequency mode through learned weight matrices, producing errors
+whose magnitude varies systematically across the spectrum. We exploit this
+structure by defining spectral nonconformity scores
+$s_w(u) = \sum_k w_k |\hat{u}_{\mathrm{err}}(k)|^2$, where the weights $w_k$
+control sensitivity to different frequency bands. Uniform weights recover the
+$L^2$ norm via Parseval's identity; polynomial weights
+$w_k = (1 + |k|^2)^s$ yield Sobolev-type scores penalizing high-frequency
+errors; and learned weights $w_k$ trained to minimize prediction band width on a
+validation set produce the tightest bands while preserving the conformal coverage
+guarantee. Because the weights affect only the scalar score and not the conformal
+calibration mechanism, coverage validity is maintained for any fixed weight
+choice.
+
+\paragraph{Contributions.} We make the following contributions:
+\begin{enumerate}[leftmargin=*,itemsep=2pt,topsep=2pt]
+  \item \textbf{Spectral nonconformity scores.} We introduce a family of
+    nonconformity scores defined via weighted Fourier coefficients of the
+    prediction residual. We prove that conformal prediction with any fixed
+    spectral weight vector $w$ satisfies the standard $1-\alpha$ marginal
+    coverage guarantee (Theorem~\ref{thm:coverage}).
+
+  \item \textbf{Learned spectral weights.} We show that optimizing the weight
+    vector $w$ to minimize average prediction band width on a held-out set
+    yields 42\% tighter bands than uniform weights on FNO (3.145 vs.\ 5.463
+    mean band width) and 41\% tighter on TFNO (2.356 vs.\ 3.970), while
+    maintaining valid coverage across all tested configurations.
+
+  \item \textbf{Comprehensive empirical validation.} We evaluate across 57
+    experiments on real Darcy flow data (64$\times$64, neuralop/Zenodo FEM
+    solutions) spanning 3 architectures (FNO, TFNO, DeepONet), 4 significance
+    levels, 4 calibration set sizes, and 5 random seeds. We confirm that
+    non-spectral architectures (DeepONet) produce $3.8\times$ wider $L^2$ bands
+    than FNO, providing direct evidence that spectral scores exploit the
+    frequency-domain structure of Fourier-based operators.
+\end{enumerate}
