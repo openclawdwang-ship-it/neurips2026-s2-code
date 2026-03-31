@@ -63,6 +63,28 @@ $0.20$ & $81.2 \pm 2.5$ & $81.2 \pm 3.3$ & $79.2 \pm 1.3$ \\
 
 
 % =============================================================================
+% TABLE 2b: Calibration set size ablation
+% =============================================================================
+\begin{table}[t]
+\centering
+\caption{Effect of calibration set size $n_\text{cal}$ on coverage (\%, FNO, Darcy 64$\times$64, $\alpha=0.1$).
+Larger $n_\text{cal}$ reduces finite-sample variance but leaves less data for training.}
+\label{tab:ncal}
+\small
+\begin{tabular}{cccc}
+\toprule
+$n_\text{cal}$ & \textbf{L2} & \textbf{Spectral (learned)} & \textbf{CQR-lite} \\
+\midrule
+  50 & $91.0 \pm 2.4$ & $94.6 \pm 3.4$ & $93.4 \pm 2.7$ \\
+  100 & $91.2 \pm 1.0$ & $91.0 \pm 1.1$ & $88.6 \pm 3.3$ \\
+  200 & $88.2 \pm 1.7$ & $89.8 \pm 1.7$ & $89.0 \pm 3.2$ \\
+  500 & $89.0 \pm 1.6$ & $89.3 \pm 1.2$ & $89.7 \pm 4.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% =============================================================================
 % TABLE 3: Key findings summary (for paper narrative)
 % =============================================================================
 % Findings to highlight in text:
